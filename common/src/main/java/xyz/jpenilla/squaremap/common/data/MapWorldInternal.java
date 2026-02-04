@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.LevelData;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -157,13 +158,17 @@ public abstract class MapWorldInternal implements MapWorld {
         return pos;
     }
 
-    @SuppressWarnings("ConstantConditions") // params for getMapColor are never used, check on mc update
     public int getMapColor(final BlockState state) {
         final int special = this.blockColors.color(state);
         if (special != -1) {
             return special;
         }
-        return Colors.rgb(state.getMapColor(null, null));
+        // getMapColor params are never used by vanilla - check on update
+        // They are however used by certain mods like framed blocks, so we pass dummy values to avoid errors.
+        // Proper framed blocks compatibility would require including block entities in the snapshot and passing the real position.
+        // We would probably want to whitelist block entity types for performance and safety reasons.
+        // Generally, we can't support 100% of possible modded uses of these parameters because of our off-main-thread chunk snapshot use.
+        return Colors.rgb(state.getMapColor(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
     }
 
     public void saveImage(final Image image) {
